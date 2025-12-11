@@ -2,9 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cors());
@@ -27,6 +27,7 @@ async function run() {
 
     const db = client.db("micro_loan_db");
     const loansCollection = db.collection("loans");
+    const applicationsCollection = db.collection("applications");
 
     app.get("/loans", async (req, res) => {
       const cursor = loansCollection.find().sort({ maxLoanLimit: 1 });
@@ -46,10 +47,13 @@ async function run() {
 
       const result = await loansCollection.findOne({ _id: objectId });
 
-      res.send({
-        success: true,
-        result,
-      });
+      res.send(result);
+    });
+
+    app.post("/applications", async (req, res) => {
+      const appData = req.body;
+      const result = await applicationsCollection.insertOne(appData);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
