@@ -29,8 +29,27 @@ function generateTrackingId() {
   return `${prefix}-${date}-${random}`;
 }
 
+const allowedOrigins = [
+  "https://micro-loan-2dacd.web.app",
+  "http://localhost:5173",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from the specified Origin.`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
-app.use(cors());
 
 const verifyFBToken = async (req, res, next) => {
   const token = req.headers.authorization;
@@ -155,7 +174,7 @@ async function run() {
     // loans api
 
     app.get("/loans", async (req, res) => {
-      const cursor = loansCollection.find().limit(6).sort({ maxLoanLimit: 1 });
+      const cursor = loansCollection.find().limit(12).sort({ maxLoanLimit: 1 });
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -465,10 +484,10 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log(
-    //   "Pinged your deployment. You successfully connected to MongoDB!"
-    // );
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
